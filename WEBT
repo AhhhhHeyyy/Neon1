@@ -1,0 +1,265 @@
+C# 2D 遊戲引擎製作
+第 1 章：遊戲引擎基礎概念
+1.1 什麼是遊戲引擎？
+遊戲引擎 是開發遊戲的軟體框架，它提供了一組工具與函式庫，幫助開發者處理 渲染、物
+理、輸入、音效 等功能，使遊戲開發更加高效。
+遊戲引擎的組成
+● 渲染系統：負責將遊戲畫面顯示給玩家，處理精靈(Sprite)、紋理(Texture)等。
+● 物理引擎：模擬重力、碰撞等物理效果。
+● 輸入處理：管理鍵盤、滑鼠、手把等輸入設備。
+● 腳本管理：透過程式碼控制遊戲邏輯與 AI 行為。
+● 音效系統：管理背景音樂與音效，增強遊戲的沉浸感。
+● 動畫系統：支援角色動畫與物件變化，提升遊戲動態效果。
+● 網路模組：提供多人遊戲、網路通訊等功能。
+為什麼使用遊戲引擎？
+1. 開發效率提升：省去從零開始開發的麻煩。
+2. 跨平台支援：支援 Windows、Linux、Mac，甚至手機與遊戲機。
+3. 強大的工具鏈：如 Unity、MonoGame 等提供可視化編輯器與開發環境。
+4. 社群與資源：開源引擎有大量的開發者支援，能夠快速獲取學習資源。
+1.2 為何選擇 C#？
+C# 擁有強大的 .NET 框架，並且在遊戲開發中被 MonoGame、Unity 廣泛使用。它的特點如
+下：
+● 物件導向：結構化且易維護。
+● 高效能：可透過 JIT 編譯提升效能。
+● 豐富的函式庫：內建 GUI、網路、多執行緒支援。
+● 易學易用：比起 C++，C# 的語法較簡潔，適合初學者。
+● 社群支持：Microsoft 提供長期支援與更新。
+1.3 設置開發環境
+1. 安裝 Visual Studio。
+2. 安裝 .NET 6.0 以上版本。
+3. 選擇 MonoGame 或 SDL2 作為開發框架。
+4. 設定 IDE，開啟專案管理，確保編譯器運作正常。
+✅ 小作業：建立一個 C# 控制台專案，輸出 "Hello, Game Engine!"
+第 2 章：遊戲迴圈與架構設計
+2.1 遊戲迴圈 (Game Loop)
+遊戲迴圈是遊戲引擎的核心，負責處理 輸入、更新狀態、渲染畫面，其流程如下：
+1. 處理輸入：偵測玩家按鍵、滑鼠事件等。
+2. 更新狀態：計算角色移動、碰撞檢測、AI 行為。
+3. 渲染畫面：將畫面更新到螢幕上。
+4. 管理遊戲時間：確保畫面幀率穩定，調整計時器。
+while (isRunning)
+{
+HandleInput();
+UpdateGame();
+Render();
+ManageFrameRate();
+}
+管理遊戲幀率
+遊戲幀率（FPS）影響遊戲的流暢度與效能，通常會限制在 30 FPS 或 60 FPS。
+Thread.Sleep(16); // 限制幀率約 60FPS
+固定時間步長 vs. 變動時間步長
+● 固定時間步長：每一幀執行時間固定，遊戲邏輯更新頻率穩定。
+● 變動時間步長：根據幀率變化來調整遊戲更新，使遊戲更適應不同效能的設備。
+float deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
+position += velocity * deltaTime;
+設計遊戲狀態管理
+遊戲通常會有多個狀態，例如：
+● 主選單 (Main Menu)
+● 遊戲進行中 (Playing)
+● 暫停 (Paused)
+● 遊戲結束 (Game Over)
+enum GameState { MainMenu, Playing, Paused, GameOver }
+GameState currentState = GameState.MainMenu;
+切換遊戲狀態
+if (currentState == GameState.MainMenu && StartButtonPressed())
+{
+currentState = GameState.Playing;
+}
+✅ 小作業：加入遊戲暫停與恢復功能。
+2.2 設計 ECS 架構
+ECS (Entity-Component-System) 是現代遊戲開發中常見的架構，將遊戲物件拆分為：
+● Entity (實體)：遊戲中的物件，如角色、敵人、道具。
+● Component (元件)：附加到實體上的屬性，如位置、速度。
+● System (系統)：負責處理邏輯，如移動、渲染、碰撞。
+ECS 優勢
+● 高效能：減少物件導向設計中的繼承問題，降低記憶體使用。
+● 模組化：讓開發者能夠靈活增加或刪除功能。
+● 可擴展性強：方便開發大型遊戲專案。
+ECS 具體實作
+建立實體 (Entity)
+public class Entity
+{
+public int ID { get; private set; }
+private List<Component> components = new List<Component>();
+public void AddComponent(Component component)
+{
+components.Add(component);
+}
+}
+建立元件 (Component)
+public class PositionComponent : Component
+{
+public float X { get; set; }
+public float Y { get; set; }
+}
+建立系統 (System)
+public class MovementSystem
+{
+public void Update(List<Entity> entities)
+{
+foreach (var entity in entities)
+{
+var position = entity.GetComponent<PositionComponent>();
+var velocity = entity.GetComponent<VelocityComponent>();
+position.X += velocity.SpeedX;
+position.Y += velocity.SpeedY;
+}
+}
+}
+ECS 設計的挑戰
+● 學習成本：比傳統物件導向更抽象，需要適應新的設計模式。
+● 記憶體管理：需要有效率的方式存取元件，避免頻繁的查找。
+● 系統組合：如何設計高效的系統來處理各種遊戲邏輯。
+✅ 小作業：擴展 ECS，加入角色的生命值管理系統。
+2.3 遊戲架構模式
+除了 ECS，還有幾種常見的遊戲架構模式：
+物件導向架構 (OOP-Based Architecture)
+適合較小型的遊戲，使用繼承來組織遊戲物件。
+class Character
+{
+public string Name;
+public int Health;
+public void Move() { }
+}
+事件驅動架構 (Event-Driven Architecture)
+利用事件系統來解釋遊戲內部的互動。
+event Action OnPlayerScored;
+資料導向架構 (Data-Oriented Architecture)
+使用資料驅動的方式來優化記憶體存取，提高效能。
+struct Position { public float X, Y; }
+Position[] positions = new Position[1000];
+✅ 小作業：比較三種架構的優缺點，並選擇適合你的遊戲架構。
+第 3 章：2D 渲染技術
+3.1 渲染基礎
+2D 遊戲使用 Sprites (精靈圖像) 來繪製角色與背景。
+3.2 使用 MonoGame 繪製 Sprites
+spriteBatch.Draw(playerTexture, new Vector2(100, 100), Color.White);
+3.3 圖層管理
+遊戲通常有多個圖層，如背景層、角色層、UI 層，確保渲染順序正確。
+spriteBatch.Draw(backgroundTexture, new Vector2(0, 0), Color.White);
+spriteBatch.Draw(playerTexture, playerPosition, Color.White);
+✅ 小作業：載入角色圖片，並顯示在畫面上。
+第 4 章：輸入與 UI
+4.1 處理鍵盤輸入
+if (Keyboard.GetState().IsKeyDown(Keys.Left))
+{
+playerPosition.X -= 5;
+}
+✅ 小作業：讓角色能夠用鍵盤方向鍵移動。
+4.2 設計遊戲 UI
+遊戲 UI 包含 按鈕、計分板、血量條 等。
+spriteBatch.DrawString(font, "Score: " + playerScore, new Vector2(10, 10),
+Color.White);
+✅ 小作業：顯示角色生命值。
+第 5 章：物理與碰撞偵測
+5.1 AABB 碰撞偵測
+AABB（Axis-Aligned Bounding Box）是一種簡單但高效的碰撞檢測方法，適用於矩形物件。
+if (playerBounds.Intersects(enemyBounds))
+{
+// 碰撞發生
+}
+✅ 小作業：讓角色無法穿越障礙物。
+5.2 圓形碰撞偵測 (Circle Collision)
+當遊戲內的物件是圓形（如子彈、球體）時，AABB 可能不夠精確，可改用圓形碰撞。
+float distance = Vector2.Distance(playerPosition, enemyPosition);
+if (distance < playerRadius + enemyRadius)
+{
+// 碰撞發生
+}
+✅ 小作業：實作圓形碰撞偵測。
+5.3 進階物理模擬
+現代遊戲往往需要更逼真的物理效果，例如：
+● 重力 (Gravity)
+● 摩擦力 (Friction)
+● 反彈效果 (Bounce)
+以下是一個基本的重力計算示例：
+velocity.Y += gravity * deltaTime;
+playerPosition += velocity * deltaTime;
+✅ 小作業：實作簡單的跳躍物理。
+5.4 剛體模擬 (Rigid Body Simulation)
+剛體系統能夠模擬物件的旋轉與受力影響。
+velocity += force / mass * deltaTime;
+position += velocity * deltaTime;
+✅ 小作業：加入剛體運動，使物件受到力的影響。
+5.5 碰撞回應 (Collision Response)
+當物件發生碰撞後，需要做出適當的反應，如停止移動或彈開。
+velocity = -velocity * restitution; // restitution 控制反彈程度
+✅ 小作業：讓角色撞牆後反彈。
+第 6 章：音效與資源管理
+6.1 播放音效
+聲音是遊戲氛圍的關鍵部分。
+soundEffect.Play();
+✅ 小作業：播放一段背景音樂。
+6.2 音效管理
+遊戲中的音效通常需要分類管理：
+● 背景音樂 (BGM)
+● 角色動作音效 (腳步聲、攻擊聲)
+● 環境音效 (風聲、雨聲)
+SoundEffectInstance bgmInstance = bgm.CreateInstance();
+bgmInstance.IsLooped = true;
+bgmInstance.Play();
+✅ 小作業：為角色攻擊動作加入音效。
+6.3 動態音效 (Spatial Audio)
+在 2D 遊戲中，可以根據物件的距離調整音量與聲音方向。
+float distance = Vector2.Distance(playerPosition, soundSource);
+soundEffect.Volume = Math.Max(0, 1 - (distance / maxDistance));
+✅ 小作業：根據距離改變音量。
+第 7 章：腳本系統與 AI
+7.1 事件驅動腳本
+讓 NPC 能根據玩家的行動觸發對話。
+public class NPCScript : Script
+{
+public void OnTrigger()
+{
+Console.WriteLine("NPC: Hello Player!");
+}
+}
+✅ 小作業：讓 NPC 根據玩家靠近與否改變對話。
+7.2 AI 行為樹 (Behavior Tree)
+行為樹是一種用於決策的結構，讓 AI 根據不同條件做出反應，如：
+● 巡邏 (Patrol)
+● 追蹤玩家 (Chase)
+● 攻擊 (Attack)
+if (Vector2.Distance(enemyPosition, playerPosition) < detectionRange)
+{
+state = EnemyState.Chase;
+}
+✅ 小作業：建立一個簡單的 AI 角色。
+第 8 章：最佳化與效能調校
+8.1 批次渲染 (Sprite Batching)
+透過合併繪製請求來減少 GPU 負擔。
+✅ 小作業：使用批次渲染技術來優化遊戲效能。
+8.2 使用物件池 (Object Pooling)
+減少重複建立與刪除物件，提高效能。
+List<Bullet> bulletPool = new List<Bullet>();
+✅ 小作業：實作子彈物件池。
+8.3 多執行緒 (Multithreading)
+將計算密集型任務分配到不同的執行緒。
+Task.Run(() => AI_Update());
+✅ 小作業：將 AI 計算放入獨立執行緒。
+第 9 章：發佈與維護
+9.1 發佈 Windows 版遊戲
+dotnet publish -r win-x64 --self-contained true
+✅ 小作業：打包遊戲成執行檔。
+9.2 錯誤偵測與除錯
+遊戲開發中，錯誤處理與日誌記錄十分重要。
+try
+{
+LoadGameAssets();
+}
+catch (Exception ex)
+{
+File.WriteAllText("error.log", ex.ToString());
+}
+✅ 小作業：加入錯誤日誌系統。
+9.3 版本管理與更新機制
+遊戲的開發並非一次性工作，應該具備更新機制。
+✅ 小作業：模擬遊戲的版本檢查與更新。
+總結
+本書帶領讀者從 C# 基礎、遊戲架構、渲染、物理、AI，到發佈，讓初學者能夠製作自己的 2D
+遊戲。
+📌 每章包含：
+● 技術教學
+● 實作範例
+● 小作業
+🚀 現在，你已經準備好開發自己的遊戲引擎了！
